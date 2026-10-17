@@ -108,6 +108,9 @@ AIRFLOW_REPORT_CATEGORIES = [
 ]
 
 # Crawler runtime
+# Research reads these directly from the environment so existing config.py files
+# continue to work: RESEARCH_SEARCH_PROVIDER=browser|parallel|none (default browser)
+# and PARALLEL_MCP_TIMEOUT_SECONDS=60 (whole search/fetch operation).
 CRAWLER_POLL_SECONDS = int(os.getenv("CRAWLER_POLL_SECONDS", "900"))
 
 # Camoufox Server

@@ -225,6 +225,29 @@ Interact with your personal knowledge base directly in Telegram chat:
 
 ## Research Mode
 
+### Parallel Search MCP (Optional)
+
+Set `RESEARCH_SEARCH_PROVIDER=parallel` in `.env` to use
+[Parallel Search MCP](https://docs.parallel.ai/integrations/mcp/search-mcp) for
+free web search and page fetching without an account or API key. Anonymous search
+uses Fast mode. Research queries and selected URLs are sent to
+`https://search.parallel.ai/mcp`; no local browser server is needed for this path.
+The research worker passes search and fetched excerpts, with source URLs, to its
+existing synthesis step.
+
+Keep `CAMOUFOX_ENABLED=true`, which remains the interactive research enable switch
+for both backends. `CAMOUFOX_ENABLED=false` or `RESEARCH_SEARCH_PROVIDER=none`
+disables interactive web research. `RESEARCH_SEARCH_PROVIDER=browser` (the default)
+keeps the Chrome/Camoufox path and its existing settings. Daily fixed-source reports
+continue to use their configured URLs and crawler.
+
+`PARALLEL_MCP_TIMEOUT_SECONDS` defaults to 60 for the complete search/fetch operation.
+Parallel errors, timeouts and service rate limits produce an unavailable-context
+message for synthesis; they never trigger a switch to another search provider.
+The anonymous service has usage limits. Update dependencies when enabling this
+backend (`mcp>=1.30,<2` and `httpx>=0.27,<1`); existing `main/config.py` files need no
+new settings.
+
 ### Chrome CDP (Primary)
 
 The agent defaults to Chrome CDP — controlling your real, daily-use browser. This approach bypasses bot detection by using your real IP, established cookies/account history, and injecting human-like browser interactions:
