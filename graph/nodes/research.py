@@ -35,6 +35,7 @@ from tools.web_search.chrome_cdp_client import ChromeCDPClient
 from tools.web_search.google_guard import GoogleGuard, GoogleGuardConfig
 from tools.web_search.research_result_cache import ResearchResultCache, CacheConfig
 from tools.web_search.file_lock import file_lock
+from tools.web_search.parallel_mcp_client import collect_parallel_context, research_search_provider
 from tools.agent_org.workspace_priming import get_workspace_priming_context
 from tools.agent_org.ollama_manager import unload_model, load_context
 
@@ -584,10 +585,26 @@ async def research_node(state: AgentState) -> dict:
             )
     elif not CAMOUFOX_ENABLED:
         collected_context = (
-            "Research unavailable: CAMOUFOX_ENABLED=false. "
-            "This research flow only supports Camoufox browser crawling."
+            "Research unavailable: CAMOUFOX_ENABLED=false disables interactive web research."
         )
         discovered_sources = []
+    elif research_search_provider() == "none":
+        collected_context = "Research unavailable: RESEARCH_SEARCH_PROVIDER=none."
+        discovered_sources = []
+    elif research_search_provider() == "parallel":
+        try:
+            collected_context, discovered_sources = await collect_parallel_context(
+                research_query,
+                session_id=session_id,
+                max_sources=RESEARCH_MAX_DISCOVERED_SOURCES,
+            )
+        except Exception as exc:
+            logger.warning("Parallel research failed: %s", type(exc).__name__)
+            collected_context = (
+                "Research unavailable: Parallel search/fetch failed. "
+                "No web evidence was collected; do not present an answer as web-verified."
+            )
+            discovered_sources = []
     else:
         logger.info("Research crawl mode is active.")
         camoufox_user_id = str(state.get("chat_id") or session_id or "agent")
